@@ -26,13 +26,4 @@ oc create route edge nexus-registry --service=nexus-registry --port=5000
 
 # SonarQube
 oc new-app --template=postgresql-persistent -p POSTGRESQL_USER=sonar -p POSTGRESQL_PASSWORD=sonar -p POSTGRESQL_DATABASE=sonar -p VOLUME_CAPACITY=4Gi --labels=app=sonarqube_db
-oc new-app --docker-image=wkulhanek/sonarqube:6.7.3 --env=SONARQUBE_JDBC_USERNAME=sonar --env=SONARQUBE_JDBC_PASSWORD=sonar --env=SONARQUBE_JDBC_URL=jdbc:postgresql://postgresql/sonar --labels=app=sonarqube
-oc rollout pause dc sonarqube
-oc expose service sonarqube
-oc create -f sonarqube_pvc.yml
-oc set volume dc/sonarqube --add --overwrite --name=sonarqube-volume-1 --mount-path=/opt/sonarqube/data/ --type persistentVolumeClaim --claim-name=sonarqube-pvc
-oc set resources dc/sonarqube --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=1
-oc patch dc sonarqube --patch='{ "spec": { "strategy": { "type": "Recreate" }}}'
-oc set probe dc/sonarqube --liveness --failure-threshold 3 --initial-delay-seconds 40 -- echo ok
-oc set probe dc/sonarqube --readiness --failure-threshold 3 --initial-delay-seconds 20 --get-url=http://:9000/about
-oc rollout resume dc sonarqube
+oc new-app -f https://github.com/kyarovoy/openshift_advdev_homework/blob/master/ki-ci-cd/sonarqube-persistent-template.yml -p HOSTNAME -p SONARQUBE_JDBC_USERNAME=sonar -p SONARQUBE_JDBC_PASSWORD=sonar -p SONARQUBE_JDBC_DBNAME=sonar
