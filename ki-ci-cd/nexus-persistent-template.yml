@@ -85,7 +85,7 @@ objects:
               memory: 1Gi
           terminationMessagePath: /dev/termination-log
           volumeMounts:
-          - name: nexus-data
+          - name: nexus3-data
             mountPath: /nexus-data
           readinessProbe:
               httpGet:
@@ -160,6 +160,9 @@ parameters:
   name: APPLICATION_NAME
   required: true
   value: nexus3
+- description: 'Custom hostname for http service route.  Leave blank for default hostname, e.g.: <application-name>-<project>.<default-domain-suffix>'
+  name: HOSTNAME
+  required: true
 - description: Volume space available for data, e.g. 512Mi, 2Gi
   name: NEXUS_VOLUME_CAPACITY
   required: false
