@@ -1,0 +1,170 @@
+kind: Template
+apiVersion: v1
+metadata:
+  annotations:
+    description: Nexus
+    tags: nexus
+  name: nexus3-persistent
+objects:
+- kind: ServiceAccount
+  apiVersion: v1
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+- kind: Service
+  apiVersion: v1
+  metadata:
+    annotations:
+      description: Nexus
+    labels:
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+  spec:
+    ports:
+    - name: 8081-tcp
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+    selector:
+      app: ${APPLICATION_NAME}
+      deploymentconfig: ${APPLICATION_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- kind: Route
+  apiVersion: v1
+  id: ${APPLICATION_NAME}-http
+  metadata:
+    annotations:
+      description: Route for application's http service.
+    labels:
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+  spec:
+    host: ${HOSTNAME}
+    to:
+      name: ${APPLICATION_NAME}
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    labels:
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+  spec:
+    replicas: 1
+    selector:
+      app: ${APPLICATION_NAME}
+      deploymentconfig: ${APPLICATION_NAME}
+    strategy:
+      resources: {}
+      type: Recreate
+      recreateParams:
+        timeoutSeconds: 600   
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: ${APPLICATION_NAME}
+          deploymentconfig: ${APPLICATION_NAME}
+      spec:
+        serviceAccountName: ${APPLICATION_NAME}
+        containers:
+        - image: " "
+          imagePullPolicy: Always
+          name: ${APPLICATION_NAME}
+          ports:
+          - containerPort: 8081
+            protocol: TCP
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 1Gi
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - name: nexus-data
+            mountPath: /nexus-data
+          readinessProbe:
+              httpGet:
+                path: /repository/maven-public/
+                port: 8081
+                scheme: HTTP
+              initialDelaySeconds: 60
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+          livenessProbe:
+              exec:
+                command:
+                  - echo
+                  - ok
+              initialDelaySeconds: 60
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: nexus3-data
+          persistentVolumeClaim:
+            claimName: nexus-pvc
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${APPLICATION_NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${APPLICATION_NAME}:${NEXUS_VERSION}
+      type: ImageChange
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    labels:
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+  spec:
+    tags:
+    - name: "${NEXUS_VERSION}"
+      from:
+        kind: DockerImage
+        name: sonatype/${APPLICATION_NAME}:${NEXUS_VERSION}
+      importPolicy: {}
+      annotations:
+        description: Nexus docker image
+        tags: nexus
+        version: "${NEXUS_VERSION}"
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+    name: nexus-pvc
+    labels:
+      app: ${APPLICATION_NAME}
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${NEXUS_VOLUME_CAPACITY}
+parameters:
+- description: The name for the application.
+  name: APPLICATION_NAME
+  required: true
+  value: nexus3
+- description: Volume space available for data, e.g. 512Mi, 2Gi
+  name: NEXUS_VOLUME_CAPACITY
+  required: false
+  value: 4Gi
+- description: Nexus version
+  name: NEXUS_VERSION
+  required: false
+  value: latest
