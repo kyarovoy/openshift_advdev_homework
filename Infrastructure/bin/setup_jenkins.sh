@@ -14,6 +14,10 @@ echo "Setting up Jenkins in project ${GUID}-jenkins from Git Repo ${REPO} for Cl
 oc -n $GUID-jenkins new-app -f ../templates/jenkins.yaml -p MEMORY_LIMIT=2Gi -p VOLUME_CAPACITY=4Gi
 oc -n $GUID-jenkins rollout status dc/jenkins -w
 
+echo "Building Jenkins Slave Maven"
+cat ../templates/jenkins-slave-maven.Dockerfile | oc -n $GUID-jenkins new-build --name=jenkins-slave-maven -D -
+oc -n $GUID-jenkins logs -f bc/jenkins-slave-maven
+
 # Code to set up the Jenkins project to execute the
 # three pipelines.
 # This will need to also build the custom Maven Slave Pod
