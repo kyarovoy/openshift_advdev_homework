@@ -14,16 +14,6 @@ echo "Setting up Jenkins in project ${GUID}-jenkins from Git Repo ${REPO} for Cl
 oc -n $GUID-jenkins new-app -f ../templates/jenkins.yaml -p MEMORY_LIMIT=2Gi -p VOLUME_CAPACITY=4Gi
 oc -n $GUID-jenkins rollout status dc/jenkins -w
 
-# Wait for Jenkins to deploy and become ready
-while : ; do
-  echo "Checking if Jenkins is Ready..."
-  oc get pod -n ${GUID}-jenkins | grep -v "deploy\|build" | grep -q "1/1"
-  [[ "$?" == "1" ]] || break
-  echo -n ""
-  sleep 5
-done
-echo " [done]"
-
 # Code to set up the Jenkins project to execute the
 # three pipelines.
 # This will need to also build the custom Maven Slave Pod
