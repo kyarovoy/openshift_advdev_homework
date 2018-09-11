@@ -11,9 +11,18 @@ GUID=$1
 REPO=$2
 CLUSTER=$3
 echo "Setting up Jenkins in project ${GUID}-jenkins from Git Repo ${REPO} for Cluster ${CLUSTER}"
+oc -n $GUID-jenkins new-app -f ../templates/jenkins.yaml -p MEMORY_LIMIT=2Gi -p VOLUME_CAPACITY=4Gi
+oc -n $GUID-jenkins rollout status dc/jenkins -w
 
-oc project $GUID-jenkins
-oc new-app -f ../templates/jenkins.yaml -p ENABLE_OAUTH=true -p MEMORY_LIMIT=2Gi -p VOLUME_CAPACITY=4Gi
+# Wait for Jenkins to deploy and become ready
+while : ; do
+  echo "Checking if Jenkins is Ready..."
+  oc get pod -n ${GUID}-jenkins | grep -v "deploy\|build" | grep -q "1/1"
+  [[ "$?" == "1" ]] || break
+  echo -n ""
+  sleep 5
+done
+echo " [done]"
 
 # Code to set up the Jenkins project to execute the
 # three pipelines.
