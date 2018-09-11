@@ -17,6 +17,7 @@ oc -n $GUID-jenkins rollout status dc/jenkins -w
 echo "Building Jenkins Slave Maven"
 cat ../templates/jenkins-slave-maven.Dockerfile | oc -n $GUID-jenkins new-build --name=jenkins-slave-maven -D -
 oc -n $GUID-jenkins logs -f bc/jenkins-slave-maven
+oc -n $GUID-jenkins new-app -f ../templates/jenkins-configmap.yaml --param GUID=${GUID}
 
 # Code to set up the Jenkins project to execute the
 # three pipelines.

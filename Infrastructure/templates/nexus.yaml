@@ -1,211 +1,182 @@
-kind: Template
 apiVersion: v1
+kind: Template
+labels:
+  app: advdev-nexus
+  template: advdev-nexus-template
 metadata:
-  annotations:
-    description: Nexus
-    tags: nexus
-  name: nexus3-persistent
+  name: advdev-nexus
 objects:
-- kind: ServiceAccount
-  apiVersion: v1
+- apiVersion: v1
+  kind: ImageStream
   metadata:
-    creationTimestamp: null
-    labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-- kind: Service
-  apiVersion: v1
+    name: nexus3
+  spec:
+    tags:
+    - from:
+        kind: DockerImage
+        name: docker.io/sonatype/nexus3:latest
+      name: latest
+- apiVersion: v1
+  kind: DeploymentConfig
   metadata:
     annotations:
-      description: Nexus
-    labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
+      template.alpha.openshift.io/wait-for-ready: "true"
+    name: ${NEXUS_SERVICE_NAME}
   spec:
-    ports:
-    - name: 8081-tcp
-      port: 8081
-      protocol: TCP
-      targetPort: 8081
+    replicas: 1
     selector:
-      app: ${APPLICATION_NAME}
-      deploymentconfig: ${APPLICATION_NAME}
-    sessionAffinity: None
-    type: ClusterIP
-  status:
-    loadBalancer: {}
-- kind: Service
-  apiVersion: v1
+      name: ${NEXUS_SERVICE_NAME}
+    strategy:
+      type: Recreate
+      recreateParams:
+        timeoutSeconds: 300
+        post:
+          failurePolicy: Abort
+          execNewPod:
+            containerName: nexus3
+            command:
+              - "/bin/bash"
+              - "-c"
+              - "curl -s https://raw.githubusercontent.com/wkulhanek/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh | bash -s admin admin123 http://${NEXUS_SERVICE_NAME}:8081"
+    paused: false
+    template:
+      metadata:
+        labels:
+          name: ${NEXUS_SERVICE_NAME}
+      spec:
+        containers:
+        - name: nexus3
+          image: sonatype/nexus3:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8081
+            protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+              - echo
+              - ok
+            failureThreshold: 3
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /repository/maven-public/
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+          resources:
+            limits:
+              cpu: "1"
+              memory: ${NEXUS_MEMORY_MAX}
+            requests:
+              memory: ${NEXUS_MEMORY_MIN}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /nexus-data
+            name: ${NEXUS_SERVICE_NAME}-volume-1
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: ${NEXUS_SERVICE_NAME}-volume-1
+          persistentVolumeClaim:
+            claimName: pvc-nexus
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - nexus3
+        from:
+          kind: ImageStreamTag
+          name: nexus3:latest
+- apiVersion: v1
+  kind: Route
   metadata:
     annotations:
-      description: Nexus Docker registry
-    labels:
-      app: ${APPLICATION_NAME}
-    name: nexus-registry
+      openshift.io/host.generated: "true"
+      template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
+    name: ${NEXUS_SERVICE_NAME}-registry
+  spec:
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: ${NEXUS_SERVICE_NAME}-registry
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+      template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
+    name: ${NEXUS_SERVICE_NAME}
+  spec:
+    to:
+      kind: Service
+      name: ${NEXUS_SERVICE_NAME}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: pvc-nexus
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${NEXUS_STORAGE_SIZE}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${NEXUS_SERVICE_NAME}-registry
   spec:
     ports:
-    - name: 5000-tcp
+    - name: docker-registry
       port: 5000
       protocol: TCP
       targetPort: 5000
     selector:
-      app: ${APPLICATION_NAME}
-      deploymentconfig: ${APPLICATION_NAME}
+      name: ${NEXUS_SERVICE_NAME}
     sessionAffinity: None
     type: ClusterIP
-  status:
-    loadBalancer: {}
-- kind: Route
-  apiVersion: v1
-  id: ${APPLICATION_NAME}-http
+- apiVersion: v1
+  kind: Service
   metadata:
-    annotations:
-      description: Route for application's http service.
-    labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
+    name: ${NEXUS_SERVICE_NAME}
   spec:
-    host: ${APPLICATION_NAME}-${PROJNAME}
-    to:
-      name: ${APPLICATION_NAME}
-- kind: Route
-  apiVersion: v1
-  id: nexus-registry
-  metadata:
-    annotations:
-      description: Route for Nexus registry
-    labels:
-      app: ${APPLICATION_NAME}
-    name: nexus-registry
-  spec:
-    host: nexus-registry-${PROJNAME}
-    port:
-      targetPort: 5000
-    tls:
-      termination: edge
-    to:
-      name: nexus-registry
-- kind: DeploymentConfig
-  apiVersion: v1
-  metadata:
-    labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-  spec:
-    replicas: 1
+    ports:
+    - name: maven-repository
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
     selector:
-      app: ${APPLICATION_NAME}
-      deploymentconfig: ${APPLICATION_NAME}
-    strategy:
-      resources: {}
-      type: Recreate
-      recreateParams:
-        timeoutSeconds: 600   
-    template:
-      metadata:
-        creationTimestamp: null
-        labels:
-          app: ${APPLICATION_NAME}
-          deploymentconfig: ${APPLICATION_NAME}
-      spec:
-        serviceAccountName: ${APPLICATION_NAME}
-        containers:
-        - image: " "
-          imagePullPolicy: Always
-          name: ${APPLICATION_NAME}
-          ports:
-          - containerPort: 8081
-            protocol: TCP
-          resources:
-            limits:
-              memory: 2Gi
-            requests:
-              memory: 1Gi
-          terminationMessagePath: /dev/termination-log
-          volumeMounts:
-          - name: nexus3-data
-            mountPath: /nexus-data
-          readinessProbe:
-              httpGet:
-                path: /repository/maven-public/
-                port: 8081
-                scheme: HTTP
-              initialDelaySeconds: 60
-              timeoutSeconds: 1
-              periodSeconds: 10
-              successThreshold: 1
-              failureThreshold: 3
-          livenessProbe:
-              exec:
-                command:
-                  - echo
-                  - ok
-              initialDelaySeconds: 60
-              timeoutSeconds: 1
-              periodSeconds: 10
-              successThreshold: 1
-              failureThreshold: 3
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        securityContext: {}
-        terminationGracePeriodSeconds: 30
-        volumes:
-        - name: nexus3-data
-          persistentVolumeClaim:
-            claimName: nexus-pvc
-    test: false
-    triggers:
-    - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${APPLICATION_NAME}
-        from:
-          kind: ImageStreamTag
-          name: ${APPLICATION_NAME}:${NEXUS_VERSION}
-      type: ImageChange
-- kind: ImageStream
-  apiVersion: v1
-  metadata:
-    labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-  spec:
-    tags:
-    - name: "${NEXUS_VERSION}"
-      from:
-        kind: DockerImage
-        name: sonatype/${APPLICATION_NAME}:${NEXUS_VERSION}
-      importPolicy: {}
-      annotations:
-        description: Nexus docker image
-        tags: nexus
-        version: "${NEXUS_VERSION}"
-- kind: PersistentVolumeClaim
-  apiVersion: v1
-  metadata:
-    name: nexus-pvc
-    labels:
-      app: ${APPLICATION_NAME}
-  spec:
-    accessModes:
-      - ReadWriteOnce
-    resources:
-      requests:
-        storage: ${NEXUS_VOLUME_CAPACITY}
+      name: ${NEXUS_SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
 parameters:
-- description: The name for the application.
-  name: APPLICATION_NAME
-  required: true
+- name: NEXUS_SERVICE_NAME
   value: nexus3
-- description: 'Project name for routes'
-  name: PROJNAME
-  required: true
-- description: Volume space available for data, e.g. 512Mi, 2Gi
-  name: NEXUS_VOLUME_CAPACITY
-  required: false
+  displayName: Nexus Service Name
+  description: The name of Nexus Service.
+- name: NEXUS_MEMORY_MIN
+  value: 1Gi
+  displayName: Mininum Nexus Memory
+  description: Minimum amount of memory for nexus container.
+- name: NEXUS_MEMORY_MAX
+  value: 2Gi
+  displayName: Maximum Nexus Memory
+  description: Maximum amount of memory for nexus container.
+- name: NEXUS_STORAGE_SIZE
   value: 4Gi
-- description: Nexus version
-  name: NEXUS_VERSION
-  required: false
-  value: latest
+  displayName: Nexus storage size
+  description: Volume space available for data.
