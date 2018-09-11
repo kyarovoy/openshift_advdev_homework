@@ -34,6 +34,27 @@ objects:
     type: ClusterIP
   status:
     loadBalancer: {}
+- kind: Service
+  apiVersion: v1
+  metadata:
+    annotations:
+      description: Nexus Docker registry
+    labels:
+      app: ${APPLICATION_NAME}
+    name: nexus-registry
+  spec:
+    ports:
+    - name: 5000-tcp
+      port: 5000
+      protocol: TCP
+      targetPort: 5000
+    selector:
+      app: ${APPLICATION_NAME}
+      deploymentconfig: ${APPLICATION_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
 - kind: Route
   apiVersion: v1
   id: ${APPLICATION_NAME}-http
@@ -44,9 +65,26 @@ objects:
       app: ${APPLICATION_NAME}
     name: ${APPLICATION_NAME}
   spec:
-    host: ${HOSTNAME}
+    host: ${APPLICATION_NAME}-${PROJNAME}
     to:
       name: ${APPLICATION_NAME}
+- kind: Route
+  apiVersion: v1
+  id: nexus-registry
+  metadata:
+    annotations:
+      description: Route for Nexus registry
+    labels:
+      app: ${APPLICATION_NAME}
+    name: nexus-registry
+  spec:
+    host: nexus-registry-${PROJNAME}
+    port:
+      targetPort: 5000
+    tls:
+      termination: edge
+    to:
+      name: nexus-registry
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -160,8 +198,8 @@ parameters:
   name: APPLICATION_NAME
   required: true
   value: nexus3
-- description: 'Custom hostname for http service route.  Leave blank for default hostname, e.g.: <application-name>-<project>.<default-domain-suffix>'
-  name: HOSTNAME
+- description: 'Project name for routes'
+  name: PROJNAME
   required: true
 - description: Volume space available for data, e.g. 512Mi, 2Gi
   name: NEXUS_VOLUME_CAPACITY
