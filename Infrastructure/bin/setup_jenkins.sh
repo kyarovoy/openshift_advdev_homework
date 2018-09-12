@@ -19,18 +19,16 @@ cat ../templates/jenkins-slave-maven.Dockerfile | oc -n $GUID-jenkins new-build 
 oc -n $GUID-jenkins logs -f bc/jenkins-slave-maven
 oc -n $GUID-jenkins new-app -f ../templates/jenkins-configmap.yaml --param GUID=${GUID}
 
-# Code to set up the Jenkins project to execute the
-# three pipelines.
-# This will need to also build the custom Maven Slave Pod
-# Image to be used in the pipelines.
-# Finally the script needs to create three OpenShift Build
-# Configurations in the Jenkins Project to build the
-# three micro services. Expected name of the build configs:
-# * mlbparks-pipeline
-# * nationalparks-pipeline
-# * parksmap-pipeline
-# The build configurations need to have two environment variables to be passed to the Pipeline:
-# * GUID: the GUID used in all the projects
-# * CLUSTER: the base url of the cluster used (e.g. na39.openshift.opentlc.com)
+echo "Creating and configuring Build Configs for 3 pipelines"
+oc -n $GUID-jenkins new-build ${REPO} --name="mlbparks-pipeline" --strategy=pipeline --context-dir="MLBParks"
+oc -n $GUID-jenkins cancel-build bc/mlbparks-pipeline
+oc -n $GUID-jenkins set env bc/mlbparks-pipeline CLUSTER=${CLUSTER} GUID=${GUID}
 
-# To be Implemented by Student
+oc -n $GUID-jenkins new-build ${REPO} --name="nationalparks-pipeline" --strategy=pipeline --context-dir="Nationalparks"
+oc -n $GUID-jenkins cancel-build bc/nationalparks-pipeline
+oc -n $GUID-jenkins set env bc/nationalparks-pipeline CLUSTER=${CLUSTER} GUID=${GUID}
+
+oc -n $GUID-jenkins new-build ${REPO} --name="parksmap-pipeline" --strategy=pipeline --context-dir="ParksMap"
+oc -n $GUID-jenkins cancel-build bc/parksmap-pipeline
+oc -n $GUID-jenkins set env bc/parksmap-pipeline CLUSTER=${CLUSTER} GUID=${GUID}
+
