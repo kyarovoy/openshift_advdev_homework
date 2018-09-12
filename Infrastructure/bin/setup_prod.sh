@@ -13,6 +13,4 @@ echo "Setting up Parks Production Environment in project ${GUID}-parks-prod"
 # The Green services/routes need to be active initially to guarantee a successful grading pipeline run.
 
 # Allow Jenkins to manipulate objects in Prod project
-oc -n ${GUID}-parks-dev policy add-role-to-group system:image-puller system:serviceaccounts:${GUID}-parks-prod
-# Default permissions
 oc -n ${GUID}-parks-prod policy add-role-to-user edit system:serviceaccount:${GUID}-jenkins:jenkins
