@@ -31,10 +31,13 @@ oc -n ${GUID}-parks-dev create configmap parksdb-conf \
        --from-literal=DB_NAME=parks
 
 # MLBParks backend microservice
-# Binary Build Config
+# Binary Build Config (+ imagestream)
 oc -n ${GUID}-parks-dev new-build --binary=true --name=mlbparks jboss-eap70-openshift:1.7
+# Deployment config placeholder linked with previously created imagestream
 oc -n ${GUID}-parks-dev new-app ${GUID}-parks-dev/mlbparks:0.0-0 --allow-missing-imagestream-tags=true --name=mlbparks -l type=backend
+# Allowing only manual deployments (e.g. no auto-redeploy on config change)
 oc -n ${GUID}-parks-dev set triggers dc/mlbparks --remove-all
+# Exposing port
 oc -n ${GUID}-parks-dev expose dc/mlbparks --port 8080
 # Probes
 oc -n ${GUID}-parks-dev set probe dc/mlbparks --readiness --initial-delay-seconds 30 --failure-threshold 3 --get-url=http://:8080/ws/healthz/
@@ -44,10 +47,10 @@ oc -n ${GUID}-parks-dev create configmap mlbparks-conf --from-literal=APPNAME="M
 # Configure Deployment Config based on ConfigMap
 oc -n ${GUID}-parks-dev set env dc/mlbparks --from=configmap/parksdb-conf
 oc -n ${GUID}-parks-dev set env dc/mlbparks --from=configmap/mlbparks-conf
-# Deployment hook to populate database
+# Post deployment hook to populate database once deployment strategy completes
 oc -n ${GUID}-parks-dev set deployment-hook dc/mlbparks --post -- curl -s http://mlbparks:8080/ws/data/load/
 
-# NationalParks backend microservice - Binary Build Config
+# NationalParks backend microservice
 # Binary Build Config
 oc -n ${GUID}-parks-dev new-build --binary=true --name=nationalparks redhat-openjdk18-openshift:1.2
 oc -n ${GUID}-parks-dev new-app ${GUID}-parks-dev/nationalparks:0.0-0 --allow-missing-imagestream-tags=true --name=nationalparks -l type=backend
@@ -61,7 +64,7 @@ oc -n ${GUID}-parks-dev create configmap nationalparks-conf --from-literal=APPNA
 # Configure Deployment Config based on ConfigMap
 oc -n ${GUID}-parks-dev set env dc/nationalparks --from=configmap/parksdb-conf
 oc -n ${GUID}-parks-dev set env dc/nationalparks --from=configmap/nationalparks-conf
-# Deployment hook to populate database
+# Post deployment hook to populate database once deployment strategy completes
 oc -n ${GUID}-parks-dev set deployment-hook dc/nationalparks --post -- curl -s http://nationalparks:8080/ws/data/load/
 
 # ParksMap frontend microservice
