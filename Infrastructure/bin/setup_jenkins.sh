@@ -21,14 +21,11 @@ oc -n $GUID-jenkins new-app -f ../templates/jenkins-configmap.yaml --param GUID=
 
 echo "Creating and configuring Build Configs for 3 pipelines"
 oc -n $GUID-jenkins new-build ${REPO} --name="mlbparks-pipeline" --strategy=pipeline --context-dir="MLBParks"
-oc -n $GUID-jenkins cancel-build bc/mlbparks-pipeline
 oc -n $GUID-jenkins set env bc/mlbparks-pipeline CLUSTER=${CLUSTER} GUID=${GUID}
 
 oc -n $GUID-jenkins new-build ${REPO} --name="nationalparks-pipeline" --strategy=pipeline --context-dir="Nationalparks"
-oc -n $GUID-jenkins cancel-build bc/nationalparks-pipeline
 oc -n $GUID-jenkins set env bc/nationalparks-pipeline CLUSTER=${CLUSTER} GUID=${GUID}
 
 oc -n $GUID-jenkins new-build ${REPO} --name="parksmap-pipeline" --strategy=pipeline --context-dir="ParksMap"
-oc -n $GUID-jenkins cancel-build bc/parksmap-pipeline
 oc -n $GUID-jenkins set env bc/parksmap-pipeline CLUSTER=${CLUSTER} GUID=${GUID}
 
