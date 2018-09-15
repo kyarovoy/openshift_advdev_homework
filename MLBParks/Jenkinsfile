@@ -27,11 +27,12 @@ podTemplate(
     def prodProj = "${GUID}-parks-prod"
     def mvnCmd = "mvn -s ./nexus_settings.xml"
     
-    echo "Copy modified nexus_settings.xml to current directory"
-    sh "sed 's/GUID/${GUID}/' ../nexus_settings.xml > ./nexus_settings.xml"
-        
+      
     dir(appDir)
     {
+      echo "Copy modified nexus_settings.xml to current directory"
+      sh "sed 's/GUID/${GUID}/' ../nexus_settings.xml > ./nexus_settings.xml"
+      
       stages {
         
         // Build app
@@ -59,7 +60,7 @@ podTemplate(
 
         stage('Build image') {
           steps { 
-            echo "Building OpenShift container image mlbparks:${devTag}"        
+            echo "Building OpenShift container image ${appName}:${devTag}"        
             sh "oc -n ${devProj} start-build ${appName} --from-file=./target/${appName}.war --follow"
             // tag image with version and build Number (devTag)
             openshiftTag  alias: 'false', 
