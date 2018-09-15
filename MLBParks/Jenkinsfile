@@ -13,8 +13,6 @@ podTemplate(
   ]
 ) 
 
-def mvnCmd = "mvn -s ./nexus_settings.xml"
-
 {
   node('maven-slave') {
     echo "GUID: ${GUID}"
@@ -27,6 +25,7 @@ def mvnCmd = "mvn -s ./nexus_settings.xml"
     def prodTag = "${appVer}"
     def devProj = "${GUID}-parks-dev"
     def prodProj = "${GUID}-parks-prod"
+    def mvnCmd = "mvn -s ./nexus_settings.xml"
     
     echo "Copy modified nexus_settings.xml to current directory"
     sh "sed 's/GUID/${GUID}/' ../nexus_settings.xml > ./nexus_settings.xml"
