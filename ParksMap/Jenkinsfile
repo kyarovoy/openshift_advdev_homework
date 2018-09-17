@@ -13,9 +13,9 @@ podTemplate(
     )
   ]
 ) 
-*/
-pipeline
+
 {
+*/
   node('maven-custom') {
     echo "GUID: ${GUID}"
     echo "CLUSTER: ${CLUSTER}"
@@ -159,7 +159,7 @@ pipeline
       }
     }
 }
-}
+//}
 
 // Convenience Functions to read variables from the pom.xml
 // Do not change anything below this line.
