@@ -1,4 +1,5 @@
 // Jenkinsfile for ParksMap
+/*
 podTemplate(
   label: "maven-custom",
   cloud: "openshift",
@@ -12,7 +13,8 @@ podTemplate(
     )
   ]
 ) 
-
+*/
+pipeline
 {
   node('maven-custom') {
     echo "GUID: ${GUID}"
