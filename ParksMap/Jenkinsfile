@@ -21,12 +21,11 @@ podTemplate(
     echo "CLUSTER: ${CLUSTER}"
     
     def appDir = "ParksMap"
-    sh "pwd && ls -la"
+
+    checkout scm
     
     dir(appDir)
     {
-      
-      sh "ls -la"
       def appName = getArtifactIdFromPom("pom.xml")
       def appVer = getVersionFromPom("pom.xml")
       def devTag  = "${appVer}-${BUILD_NUMBER}"
