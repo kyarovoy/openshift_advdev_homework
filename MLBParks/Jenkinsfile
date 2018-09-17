@@ -1,6 +1,6 @@
 // Jenkinsfile for MLBParks
 podTemplate(
-  label: "skopeo-pod",
+  label: "maven-custom",
   cloud: "openshift",
   inheritFrom: "maven",
   containers: [
