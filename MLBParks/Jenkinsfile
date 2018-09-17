@@ -18,6 +18,7 @@ podTemplate(
     echo "GUID: ${GUID}"
     echo "CLUSTER: ${CLUSTER}"
     
+    checkout scm
     def appDir = "MLBParks"
     
     dir(appDir)
