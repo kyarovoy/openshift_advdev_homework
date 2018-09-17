@@ -1,5 +1,5 @@
 // Jenkinsfile for ParksMap
-/*
+
 podTemplate(
   label: "maven-custom",
   cloud: "openshift",
@@ -15,7 +15,7 @@ podTemplate(
 ) 
 
 {
-*/
+
   node('maven-custom') {
     echo "GUID: ${GUID}"
     echo "CLUSTER: ${CLUSTER}"
@@ -159,7 +159,7 @@ podTemplate(
       }
     }
 }
-//}
+}
 
 // Convenience Functions to read variables from the pom.xml
 // Do not change anything below this line.
