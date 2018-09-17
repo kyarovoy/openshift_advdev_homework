@@ -84,11 +84,6 @@ podTemplate(
           openshiftVerifyService namespace: devProj, svcName: appName, verbose: 'false'
       }
 
-      stage('Integration Tests') {
-        when { expression { TYPE == "backend" } }
-        sh "curl -s -o /dev/null -w '%{http_code}\n' http://${appName}-${devProj}.apps.${CLUSTER}/ws/data/all | fgrep 200"
-      }
-
       stage('Copy Image to Nexus Docker Registry') {
           sh """skopeo copy \
                 --src-tls-verify=false \
