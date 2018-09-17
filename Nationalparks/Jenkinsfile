@@ -1,12 +1,12 @@
 // Jenkinsfile for NationalParks
 podTemplate(
-  label: "skopeo-pod",
+  label: "maven-custom",
   cloud: "openshift",
   inheritFrom: "maven",
   containers: [
     containerTemplate(
       name: "jnlp",
-      image: "docker-registry.default.svc:5000/${GUID}-jenkins/jenkins-slave-appdev",
+      image: "docker-registry.default.svc:5000/${GUID}-jenkins/jenkins-slave-maven-appdev:v3.9",
       resourceRequestMemory: "1Gi",
       resourceLimitMemory: "2Gi"
     )
@@ -14,7 +14,7 @@ podTemplate(
 ) 
 
 {
-  node('maven-slave') {
+  node('maven-custom') {
     echo "GUID: ${GUID}"
     echo "CLUSTER: ${CLUSTER}"
     
