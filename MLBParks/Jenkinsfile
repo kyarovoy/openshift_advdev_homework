@@ -14,7 +14,7 @@ podTemplate(
 ) 
 
 {
-  node('maven-slave') {
+  node('maven-custom') {
     echo "GUID: ${GUID}"
     echo "CLUSTER: ${CLUSTER}"
     
