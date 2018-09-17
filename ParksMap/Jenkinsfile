@@ -19,6 +19,7 @@ podTemplate(
     echo "CLUSTER: ${CLUSTER}"
     
     def appDir = "ParksMap"
+    sh "pwd && ls -la"
     
     dir(appDir)
     {
