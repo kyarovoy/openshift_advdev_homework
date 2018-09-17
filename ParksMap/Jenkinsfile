@@ -22,7 +22,8 @@ podTemplate(
     
     dir(appDir)
     {
-        
+      
+      sh "ls -la"
       def appName = getArtifactIdFromPom("pom.xml")
       def appVer = getVersionFromPom("pom.xml")
       def devTag  = "${appVer}-${BUILD_NUMBER}"
