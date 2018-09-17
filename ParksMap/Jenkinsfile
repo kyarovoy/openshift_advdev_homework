@@ -147,7 +147,7 @@ podTemplate(
         
         stage('Switch apps in prod') {
           steps {
-            sh "oc -n ${prodProj} patch route ${appName} -p '{\"spec\":{\"to\":{\"name\":"${newApp}\"}}}'"
+            sh "oc -n ${prodProj} patch route ${appName} -p '{\"spec\":{\"to\":{\"name\":\"${newApp}\"}}}'"
           }
         }
         
