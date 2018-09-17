@@ -38,30 +38,23 @@ podTemplate(
       sh "sed 's/GUID/${GUID}/' ../nexus_settings.xml > ./nexus_settings.xml"
         
       // Build app
-      stage("Build") {
-        steps {       
+      stage("Build") {  
           sh "${mvnCmd} clean package spring-boot:repackage -DskipTests -Dcom.redhat.xpaas.repo.redhatga"
-        }
       }
 
       // Run unit & code coverage analysis tests in parallel
       parallel {
         stage('Run Unit Tests') {
-          steps {
             sh "${mvnCmd} test"
-          }
         }
 
         stage('Code coverage Tests') {
-          steps { 
             def SONAR_URL = "http://sonarqube.${GUID}-sonarqube.svc:9000"
             sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.projectName=${appName}-${devTag}"
-          }
         }
       }
 
       stage('Build image') {
-        steps { 
           echo "Building OpenShift container image ${appName}:${devTag}"        
           sh "oc -n ${devProj} start-build ${appName} --from-file=./target/${appName}.war --follow"
           // tag image with version and build Number (devTag)
@@ -73,18 +66,14 @@ podTemplate(
                       namespace: devProj,
                       destinationNamespace: devProj,
                       verbose: 'false'
-        }
       }
 
       stage('Publish artifact to Nexus') {
-        steps { 
           def NEXUS_URL = "http://nexus3-${GUID}-nexus.apps.${CLUSTER}/repository/releases"
           sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::${NEXUS_URL}"
-        }
       }
 
       stage('Deploy to Dev') {
-        steps {
           echo "Deploying image to DevProj"                    
           sh "oc -n ${devProj} set image dc/${appName} ${appName}=docker-registry.default.svc:5000/${devProj}/${appName}:${devTag}"
           // sh "oc -n ${devProj} rollout latest dc/${appName} && oc rollout status dc/${APP_NAME} -w "
@@ -92,18 +81,14 @@ podTemplate(
           openshiftDeploy namespace: devProj, depCfg: appName,  verbose: 'false', waitTime: '', waitUnit: 'sec'
           openshiftVerifyDeployment namespace: devProj, depCfg: appName, replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false', waitTime: '', waitUnit: 'sec'
           openshiftVerifyService namespace: devProj, svcName: appName, verbose: 'false'
-        }
       }
 
       stage('Integration Tests') {
         when { expression { TYPE == "backend" } }
-        steps {
-          sh "curl -s -o /dev/null -w '%{http_code}\n' http://${appName}-${devProj}.apps.${CLUSTER}/ws/data/all | fgrep 200"
-        }
+        sh "curl -s -o /dev/null -w '%{http_code}\n' http://${appName}-${devProj}.apps.${CLUSTER}/ws/data/all | fgrep 200"
       }
 
       stage('Copy Image to Nexus Docker Registry') {
-        steps {
           sh """skopeo copy \
                 --src-tls-verify=false \
                 --dest-tls-verify=false \
@@ -112,10 +97,8 @@ podTemplate(
                 docker://docker-registry.default.svc.cluster.local:5000/${devProj}/${appName}:${devTag} \
                 docker://nexus-registry.${GUID}-nexus.svc.cluster.local:5000/${appName}:${devTag}
              """
-        }
       }
       stage('Tag Image for production') {
-        steps {
           // Tag image with prod tag
           openshiftTag  alias: 'false', 
                         srcStream: appName,
@@ -125,11 +108,9 @@ podTemplate(
                         namespace: devProj,
                         destinationNamespace: prodProj, 
                         verbose: 'false'
-        }
       }
 
       stage('Blue/Green deployment to prod') {
-        steps {
           curApp = sh(returnStdout: true, script: "oc -n ${prodProj} get route ${appName} -o jsonpath='{ .spec.to.name }'").trim()
           if (curApp == "${appName}-green") {
             newApp = "${appName}-blue"
@@ -144,13 +125,10 @@ podTemplate(
           openshiftDeploy namespace: prodProj, depCfg: newApp, verbose: 'false', waitTime: '', waitUnit: 'sec'
           openshiftVerifyDeployment namespace: prodProj, depCfg: newApp, replicaCount: '1', verbose: 'false', verifyReplicaCount: 'true', waitTime: '', waitUnit: 'sec'
           openshiftVerifyService namespace: prodProj, svcName: newApp, verbose: 'false'
-        }
       }
 
       stage('Switch apps in prod') {
-        steps {
           sh "oc -n ${prodProj} patch route ${appName} -p '{\"spec\":{\"to\":{\"name\":\"${newApp}\"}}}'"
-        }
       }
 
     }
