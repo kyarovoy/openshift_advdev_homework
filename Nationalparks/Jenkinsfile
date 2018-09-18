@@ -17,7 +17,8 @@ podTemplate(
   node('maven-custom') {
     echo "GUID: ${GUID}"
     echo "CLUSTER: ${CLUSTER}"
-    
+
+    checkout scm
     def appDir = "Nationalparks"
 
     dir(appDir)
