@@ -7,7 +7,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 GUID=$1
-TMPL_DIR=$(cd "$(dirname $0)"; pwd -P)/../templates
+TMPL_DIR=$(dirname $0)/../templates
 echo "Setting up Parks Production Environment in project ${GUID}-parks-prod"
 
 # Code to set up the parks production project. It will need a StatefulSet MongoDB, and two applications each (Blue/Green) for NationalParks, MLBParks and Parksmap.

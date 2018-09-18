@@ -10,7 +10,7 @@ fi
 GUID=$1
 REPO=$2
 CLUSTER=$3
-TMPL_DIR=$(cd "$(dirname $0)"; pwd -P)/../templates
+TMPL_DIR=$(dirname $0)/../templates
 
 echo "Allowing Jenkins in grading project to edit resources in this Jenkins project"
 oc -n ${GUID}-jenkins policy add-role-to-user edit system:serviceaccount:gpte-jenkins:jenkins

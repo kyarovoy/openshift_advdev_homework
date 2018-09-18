@@ -8,7 +8,7 @@ fi
 
 GUID=$1
 CLUSTER=$2
-TMPL_DIR=$(cd "$(dirname $0)"; pwd -P)/../templates
+TMPL_DIR=$(dirname $0)/../templates
 
 echo "Setting up Nexus in project $GUID-nexus"
 
