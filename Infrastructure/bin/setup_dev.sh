@@ -35,7 +35,8 @@ oc -n ${GUID}-parks-dev create configmap parksdb-conf \
 # Binary Build Config (+ imagestream)
 oc -n ${GUID}-parks-dev new-build --binary=true --name=mlbparks jboss-eap70-openshift:1.7
 # Deployment config placeholder linked with previously created imagestream
-oc -n ${GUID}-parks-dev new-app ${GUID}-parks-dev/mlbparks:0.0-0 --allow-missing-imagestream-tags=true --name=mlbparks -l type=backend
+oc -n ${GUID}-parks-dev new-app ${GUID}-parks-dev/mlbparks:0.0-0 --allow-missing-imagestream-tags=true --name=mlbparks -l 
+=parksmap-backend
 # Allowing only manual deployments (e.g. no auto-redeploy on config change)
 oc -n ${GUID}-parks-dev set triggers dc/mlbparks --remove-all
 # Exposing port
@@ -54,7 +55,7 @@ oc -n ${GUID}-parks-dev set deployment-hook dc/mlbparks --post -- curl -s http:/
 # NationalParks backend microservice
 # Binary Build Config
 oc -n ${GUID}-parks-dev new-build --binary=true --name=nationalparks redhat-openjdk18-openshift:1.2
-oc -n ${GUID}-parks-dev new-app ${GUID}-parks-dev/nationalparks:0.0-0 --allow-missing-imagestream-tags=true --name=nationalparks -l type=backend
+oc -n ${GUID}-parks-dev new-app ${GUID}-parks-dev/nationalparks:0.0-0 --allow-missing-imagestream-tags=true --name=nationalparks -l type=parksmap-backend
 oc -n ${GUID}-parks-dev set triggers dc/nationalparks --remove-all
 oc -n ${GUID}-parks-dev expose dc/nationalparks --port 8080
 # Probes
@@ -71,7 +72,7 @@ oc -n ${GUID}-parks-dev set deployment-hook dc/nationalparks --post -- curl -s h
 # ParksMap frontend microservice
 # Binary Build Config
 oc -n ${GUID}-parks-dev new-build --binary=true --name=parksmap redhat-openjdk18-openshift:1.2
-oc -n ${GUID}-parks-dev new-app ${GUID}-parks-dev/parksmap:0.0-0 --allow-missing-imagestream-tags=true --name=parksmap -l type=frontend
+oc -n ${GUID}-parks-dev new-app ${GUID}-parks-dev/parksmap:0.0-0 --allow-missing-imagestream-tags=true --name=parksmap -l type=parksmap-frontend
 oc -n ${GUID}-parks-dev set triggers dc/parksmap --remove-all
 oc -n ${GUID}-parks-dev expose dc/parksmap --port 8080
 # Probes
