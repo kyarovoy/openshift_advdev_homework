@@ -35,8 +35,7 @@ oc -n ${GUID}-parks-dev create configmap parksdb-conf \
 # Binary Build Config (+ imagestream)
 oc -n ${GUID}-parks-dev new-build --binary=true --name=mlbparks jboss-eap70-openshift:1.7
 # Deployment config placeholder linked with previously created imagestream
-oc -n ${GUID}-parks-dev new-app ${GUID}-parks-dev/mlbparks:0.0-0 --allow-missing-imagestream-tags=true --name=mlbparks -l 
-=parksmap-backend
+oc -n ${GUID}-parks-dev new-app ${GUID}-parks-dev/mlbparks:0.0-0 --allow-missing-imagestream-tags=true --name=mlbparks -l type=parksmap-backend
 # Allowing only manual deployments (e.g. no auto-redeploy on config change)
 oc -n ${GUID}-parks-dev set triggers dc/mlbparks --remove-all
 # Exposing port
