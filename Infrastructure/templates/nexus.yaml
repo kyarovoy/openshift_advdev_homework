@@ -147,7 +147,7 @@ objects:
       targetPort: 5000
     selector:
       name: ${NEXUS_SERVICE_NAME}
-    sessionAffinity: None
+    sessionAffinity: ClusterIP
     type: ClusterIP
 - apiVersion: v1
   kind: Service
