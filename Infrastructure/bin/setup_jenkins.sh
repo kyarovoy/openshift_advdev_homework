@@ -12,7 +12,7 @@ REPO=$2
 CLUSTER=$3
 
 echo "Allowing Jenkins in grading project to edit resources in this Jenkins project"
-oc -n ${GUID}-jenkins policy add-role-to-user admin system:serviceaccount:gpte-jenkins:jenkins
+oc -n ${GUID}-jenkins policy add-role-to-user edit system:serviceaccount:gpte-jenkins:jenkins
 
 echo "Setting up Jenkins in project ${GUID}-jenkins from Git Repo ${REPO} for Cluster ${CLUSTER}"
 oc -n $GUID-jenkins new-app -f ../templates/jenkins.yaml -p MEMORY_LIMIT=2Gi -p VOLUME_CAPACITY=4Gi
