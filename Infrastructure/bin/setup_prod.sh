@@ -44,7 +44,7 @@ done
 echo " [done]"
 
 # Configuring MLB Parks backend microservice (Blue)
-oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/mlbparks:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=mlbparks-blue -l type=backend-reserve
+oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/mlbparks:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=mlbparks-blue -l type=parksmap-backend-reserve
 oc -n ${GUID}-parks-prod set triggers dc/mlbparks-blue --remove-all
 oc -n ${GUID}-parks-prod expose dc/mlbparks-blue --port 8080
 oc -n ${GUID}-parks-prod set probe dc/mlbparks-blue --readiness --initial-delay-seconds 30 --failure-threshold 3 --get-url=http://:8080/ws/healthz/
@@ -55,7 +55,7 @@ oc -n ${GUID}-parks-prod set env dc/mlbparks-blue --from=configmap/parksdb-conf
 oc -n ${GUID}-parks-prod set deployment-hook dc/mlbparks-blue --post -- curl -s http://mlbparks-blue:8080/ws/data/load/
 
 # Configuring MLB Parks backend microservice (Green)
-oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/mlbparks:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=mlbparks-green -l type=backend
+oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/mlbparks:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=mlbparks-green -l type=parksmap-backend
 oc -n ${GUID}-parks-prod set triggers dc/mlbparks-green --remove-all
 oc -n ${GUID}-parks-prod expose dc/mlbparks-green --port 8080
 oc -n ${GUID}-parks-prod set probe dc/mlbparks-green --readiness --initial-delay-seconds 30 --failure-threshold 3 --get-url=http://:8080/ws/healthz/
@@ -66,7 +66,7 @@ oc -n ${GUID}-parks-prod set env dc/mlbparks-green --from=configmap/parksdb-conf
 oc -n ${GUID}-parks-prod set deployment-hook dc/mlbparks-green --post -- curl -s http://mlbparks-green:8080/ws/data/load/
 
 # Configuring National Parks backend microservice (Blue)
-oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/nationalparks:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=nationalparks-blue -l type=backend-reserve
+oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/nationalparks:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=nationalparks-blue -l type=parksmap-backend-reserve
 oc -n ${GUID}-parks-prod set triggers dc/nationalparks-blue --remove-all
 oc -n ${GUID}-parks-prod expose dc/nationalparks-blue --port 8080
 oc -n ${GUID}-parks-prod set probe dc/nationalparks-blue --readiness --initial-delay-seconds 30 --failure-threshold 3 --get-url=http://:8080/ws/healthz/
@@ -77,7 +77,7 @@ oc -n ${GUID}-parks-prod set env dc/nationalparks-blue --from=configmap/parksdb-
 oc -n ${GUID}-parks-prod set deployment-hook dc/nationalparks-blue --post -- curl -s http://nationalparks-blue:8080/ws/data/load/
 
 # Configuring National Parks backend microservice (Green)
-oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/nationalparks:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=nationalparks-green -l type=backend
+oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/nationalparks:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=nationalparks-green -l type=parksmap-backend
 oc -n ${GUID}-parks-prod set triggers dc/nationalparks-green --remove-all
 oc -n ${GUID}-parks-prod expose dc/nationalparks-green --port 8080
 oc -n ${GUID}-parks-prod set probe dc/nationalparks-green --readiness --initial-delay-seconds 30 --failure-threshold 3 --get-url=http://:8080/ws/healthz/
@@ -88,7 +88,7 @@ oc -n ${GUID}-parks-prod set env dc/nationalparks-green --from=configmap/parksdb
 oc -n ${GUID}-parks-prod set deployment-hook dc/nationalparks-green --post -- curl -s http://nationalparks-green:8080/ws/data/load/
 
 # Configuring Parks Map frontend microservice (Blue)
-oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/parksmap:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=parksmap-blue -l type=frontend
+oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/parksmap:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=parksmap-blue -l type=parksmap-frontend
 oc -n ${GUID}-parks-prod set triggers dc/parksmap-blue --remove-all
 oc -n ${GUID}-parks-prod expose dc/parksmap-blue --port 8080
 oc -n ${GUID}-parks-prod set probe dc/parksmap-blue --readiness --initial-delay-seconds 30 --failure-threshold 3 --get-url=http://:8080/ws/healthz/
@@ -97,7 +97,7 @@ oc -n ${GUID}-parks-prod create configmap parksmap-blue-conf --from-literal=APPN
 oc -n ${GUID}-parks-prod set env dc/parksmap-blue --from=configmap/parksmap-blue-conf
 
 # Configuring Parks Map frontend microservice (Green)
-oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/parksmap:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=parksmap-green -l type=frontend
+oc -n ${GUID}-parks-prod new-app ${GUID}-parks-dev/parksmap:0.0 --allow-missing-images=true --allow-missing-imagestream-tags=true --name=parksmap-green -l type=parksmap-frontend
 oc -n ${GUID}-parks-prod set triggers dc/parksmap-green --remove-all
 oc -n ${GUID}-parks-prod expose dc/parksmap-green --port 8080
 oc -n ${GUID}-parks-prod set probe dc/parksmap-green --readiness --initial-delay-seconds 30 --failure-threshold 3 --get-url=http://:8080/ws/healthz/
