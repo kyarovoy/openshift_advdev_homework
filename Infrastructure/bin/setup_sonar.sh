@@ -7,9 +7,11 @@ if [ "$#" -ne 1 ]; then
 fi
 
 GUID=$1
+TMPL_DIR=$(cd "$(dirname $0)"; pwd -P)/../templates
+
 echo "Setting up Sonarqube in project $GUID-sonarqube"
 
-oc -n $GUID-sonarqube new-app -f ../templates/sonarqube.yaml
+oc -n $GUID-sonarqube new-app -f ${TMPL_DIR}/sonarqube.yaml
 oc -n $GUID-sonarqube rollout status dc/sonarqube -w
 
 
