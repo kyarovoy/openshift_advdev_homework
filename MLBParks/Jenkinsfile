@@ -92,7 +92,7 @@ podTemplate(
                 --src-creds openshift:\$(oc whoami -t) \
                 --dest-creds admin:admin123 \
                 docker://docker-registry.default.svc.cluster.local:5000/${devProj}/${appName}:${devTag} \
-                docker://nexus2-registry.${GUID}-nexus.svc.cluster.local:5000/${appName}:${devTag}
+                docker://nexus3-registry.${GUID}-nexus.svc.cluster.local:5000/${appName}:${devTag}
              """
       }
       
