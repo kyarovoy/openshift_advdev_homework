@@ -13,7 +13,7 @@ import io.fabric8.openshift.api.model.Route;
 public class RouteWatcher extends AbstractResourceWatcher<Route> {
 	private static final Logger logger = LoggerFactory.getLogger(ServiceWatcher.class);
 
-	private static final String PARKSMAP_BACKEND_LABEL = "type=backend";
+	private static final String PARKSMAP_BACKEND_LABEL = "type=parksmap-backend";
 
 	@Override
 	protected List<Route> listWatchedResources() {
