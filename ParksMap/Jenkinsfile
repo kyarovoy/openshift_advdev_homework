@@ -111,6 +111,10 @@ podTemplate(
           if (curApp == "${appName}-green") {
             newApp = "${appName}-blue"
           }
+          else {
+            newApp = "${appName}-green"
+          }
+        
           echo "Active app: ${curApp}"
           echo "New app: ${newApp}"
 
