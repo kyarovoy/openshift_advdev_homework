@@ -12,8 +12,9 @@ echo "Setting up Parks Production Environment in project ${GUID}-parks-prod"
 # Code to set up the parks production project. It will need a StatefulSet MongoDB, and two applications each (Blue/Green) for NationalParks, MLBParks and Parksmap.
 # The Green services/routes need to be active initially to guarantee a successful grading pipeline run.
 
-# Allow Jenkins to manipulate objects in Prod project
+# Allow Jenkins (both from my project and grading project) to manipulate objects in Prod project
 oc -n ${GUID}-parks-prod policy add-role-to-user edit system:serviceaccount:${GUID}-jenkins:jenkins
+oc -n ${GUID}-parks-prod policy add-role-to-user edit system:serviceaccount:gpte-jenkins:jenkins
 
 # Default permissions
 oc -n ${GUID}-parks-prod policy add-role-to-user view --serviceaccount=default
