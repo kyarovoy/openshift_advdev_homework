@@ -103,6 +103,7 @@ oc -n ${GUID}-parks-prod set probe dc/parksmap-green --liveness --initial-delay-
 oc -n ${GUID}-parks-prod create configmap parksmap-green-conf --from-literal=APPNAME="ParksMap (Green)"
 oc -n ${GUID}-parks-prod set env dc/parksmap-green --from=configmap/parksmap-green-conf
 
-# Expose frontend service
+# Expose services
 oc -n ${GUID}-parks-prod expose svc/parksmap-green --name parksmap
-
+oc -n ${GUID}-parks-prod expose svc/mlbparks-green --name mlbparks
+oc -n ${GUID}-parks-prod expose svc/nationalparks-green --name nationalparks
